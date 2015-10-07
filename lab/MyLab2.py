@@ -1,22 +1,21 @@
-#-*- coding: utf8 -*-
 import urllib
 import urllib2
 import re
 
+
+list_of_extensions = ['gif', 'bmp', 'jpg', 'jpeg', 'png', 'js', 'css']
+
+
 url = 'http://lenta.ru'
-name_txt = ''
-name_txt = url[url.rfind('/') + 1 : url.rfind('.') + 1 ] + 'txt'
-name_html = url[url.rfind('/') + 1 : url.rfind('.') + 1 ] + 'html'
-urllib.urlretrieve(url, name_txt)
-out_txt = 'output.txt'
 content = urllib2.urlopen(url).read()
-img_urls = re.findall('img .*?src="(.*?)"', content)
-js_urls = re.findall('script .*?src="(http:*.*?)"', content)
-css_urls = re.findall('href .*?src="(.css)"', content)
+img_urls = re.findall('img.*?src="(.*?)"', content)
+js_urls = re.findall('script.*?src="(http:*.*?)"', content)
+css_urls = re.findall('link.*?href=\"(.*?.css)\"',content)
 urls = img_urls + js_urls + css_urls
-
-
-#print type(content)
-#print content
-#print type(urls)
 print urls
+for i in range(len(urls)):
+    address = urls[i]
+    if address[address.rfind('.') + 1 : ] in list_of_extensions:
+        name_file = address[address.rfind('/') + 1 : ]
+        urllib.urlretrieve(address, name_file)
+print 'end'
