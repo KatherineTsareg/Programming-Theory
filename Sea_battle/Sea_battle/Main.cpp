@@ -2,14 +2,15 @@
 #include "Map.h"
 #include <sstream>
 #include <iostream>
+#include <stdlib.h>
+#include <random> 
+#include <ctime>
 
 
 using namespace sf; //включаем пространство имен sf, чтобы постоянно не писать sf::
 using namespace std;
 
-//const int fourDeck = 1;
-//const int threeDeck = 2;
-//const int doubleDeck = 3;
+
 const int maxLengthShip = 4;
 const int maxNumberSingleShip = 20;
 
@@ -39,8 +40,7 @@ void render(RenderWindow & window, Sprite & s_map)
 			if ((TileMap[i][j] == '2'))
 				s_map.setTextureRect(IntRect(96, 0, 32, 32));//если встретили '2', то рисуем картинку "попал" (крестик)
 			if ((TileMap[i][j] == '3'))
-				s_map.setTextureRect(IntRect(128, 0, 32, 32));//если встретили '3', то рисуем картинку "убил" (красный крестик)
-			
+				s_map.setTextureRect(IntRect(96, 0, 32, 32));//если встретили '2', то рисуем картинку "попал" (крестик)
 			s_map.setPosition(j * BLOCK_SIZE, i * BLOCK_SIZE);//раскидывает квадратики, превращая в карту. то есть задает каждому из них позицию. если убрать, то вся карта нарисуется в одном квадрате 32*32 и мы увидим один квадрат
 
 			window.draw(s_map);//рисуем квадратики на экран
@@ -58,19 +58,64 @@ void text(RenderWindow & window, Sprite & s_map)
 }
 
 void placementShipPlayers(int i, int j, int ship) { //игрок расставляет свои корабли
-	if ((TileMap[i][j] == '0') && (TileMap[i - 1][j - 1] != '2') && (TileMap[i - 1][j + 1] != '2') && (TileMap[i + 1][j - 1] != '2') && (TileMap[i + 1][j + 1] != '2'))
-	{
-		ship = ship + 3;
-		TileMap[i][j] = '2';
-		std::cout << "SHIP=" << ship<< "\n";
+	if ((TileMap[i][j] == '0') && (TileMap[i - 1][j - 1] != '2') && (TileMap[i - 1][j + 1] != '2') && (TileMap[i + 1][j - 1] != '2') && (TileMap[i + 1][j + 1] != '2')) {
+		if (ship < maxNumberSingleShip)
+		{
+			ship ++;
+			TileMap[i][j] = '2';
+			std::cout << "SHIP=" << ship << "\n";
+		}
 	}
 }
 
 void seachShip(int i, int j) {
 	if (TileMap[i][j] == '0')
 		TileMap[i][j] = '1';
-	else if (TileMap[i][j] == 'd')
+	else if (TileMap[i][j] == 'X')
 		TileMap[i][j] = '2';
+}
+
+void alignmentOfComputerOneShip(int LengthShip)//расстановка кораблей компьютером
+{
+	for (int k = 1; k <= (5 - LengthShip); k++) {
+		srand(time(NULL));
+		int i = rand() % 10 + 3;
+		int j = rand() % 10 + 12;
+		int location = rand() % 2; //расположение корабля, 0 - горизонтально, 1 - вертикально
+		if ((j + LengthShip) > 21)
+			j = 21;
+		else
+			j = j + LengthShip;
+		if (LengthShip > 0)
+			std::cout << "i=" << i << ",j=" << j << ",LEN= " << LengthShip << ",loc= " << location << "\n";
+		if ((i <= 12) && (j <= 21) && (TileMap[i][j] == '0')) { //&& (TileMap[i - 1][j - 1] != 'X') && (TileMap[i - 1][j + 1] != 'X') && (TileMap[i + 1][j - 1] != 'X') && (TileMap[i + 1][j + 1] != 'X')) {
+			std::cout << "YES YES TES\n";
+			if (location != 1) {
+				std::cout << "WHAT IS WRONG?\n";
+				if ((TileMap[i - 1][j] != 'X') && (TileMap[i + 1][j] != 'X')) {
+					TileMap[i][j] = 'X';
+					LengthShip--;
+					j--;
+				}
+			}
+			else
+			{
+				if ((TileMap[i][j - 1] != 'X') && (TileMap[i][j + 1] != 'X')) {
+					TileMap[i][j] = 'X';
+					LengthShip--;
+					j--;
+				}
+			}
+		}else {
+			std::cout << "FAIL\n";
+			srand(time(NULL));
+			int i = rand()%10 + 3;
+			srand(time(NULL));
+			int j = rand()%10 + 12;
+			srand(time(NULL));
+			int location = rand()%2;
+		}
+	}
 }
 
 	void workWithMap(RenderWindow & window, Sprite & s_map, int ship){
@@ -81,9 +126,7 @@ void seachShip(int i, int j) {
 			int j = (localPosition.x / 32);
 			std::cout << "PosPos " << i << ',' << j << "\n";
 			if (((i >= 3) && (i <= 12)) && ((j >= 1) && (j <= 10))){ //если игрок нажимает мышью на свое поле
-				ship++;
 				placementShipPlayers(i, j, ship);
-				ship++;
 			}else if (((i >= 3) && (i <= 12)) && ((j >= 12) && (j <= 21))) //если игрок нажимает мышью на поле компьютера
 				seachShip(i, j);
 		}
@@ -109,6 +152,12 @@ int main()
 	//text.setColor(Color::Red);//покрасили текст в красный. если убрать эту строку, то по умолчанию он белый
 	text.setStyle(sf::Text::Bold);//жирный текст*/
 
+	for (int Ship = 4; Ship > 0; Ship--) {
+		std::cout << "NEW" << Ship << "\n";
+		alignmentOfComputerOneShip(Ship);
+	}
+		
+
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -120,6 +169,7 @@ int main()
 		render(window, s_map);
 		workWithMap(window, s_map, ship);
 		text(window, s_map);
+
 	}
 	return 0;
 }
