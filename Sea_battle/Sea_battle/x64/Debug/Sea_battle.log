@@ -1,19 +1,15 @@
-﻿Сборка начата 08.10.2015 1:10:10.
+﻿Сборка начата 14.10.2015 19:48:29.
      1>Проект "C:\Users\mm\Desktop\Programming-Theory\Sea_battle\Sea_battle\Sea_battle.vcxproj" в узле 2 (целевые объекты Build).
      1>ClCompile:
          C:\Program Files (x86)\VC\bin\x86_amd64\CL.exe /c /IC:\SFML\include /ZI /nologo /W3 /WX- /sdl /Od /D SFML_DYNAMIC /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"x64\Debug\\" /Fd"x64\Debug\vc140.pdb" /Gd /TP /errorReport:prompt Main.cpp
          Main.cpp
-     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(18): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
-     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(19): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
-     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(81): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(111): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(113): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(115): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-       Link:
-         C:\Program Files (x86)\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\mm\Desktop\Programming-Theory\Sea_battle\x64\Debug\Sea_battle.exe" /INCREMENTAL /NOLOGO /LIBPATH:C:\SFML\lib "sfml-graphics-d.lib" "sfml-window-d.lib" "sfml-system-d.lib" "sfml-audio-d.lib" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\mm\Desktop\Programming-Theory\Sea_battle\x64\Debug\Sea_battle.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\mm\Desktop\Programming-Theory\Sea_battle\x64\Debug\Sea_battle.lib" /MACHINE:X64 x64\Debug\Main.obj
-         Sea_battle.vcxproj -> C:\Users\mm\Desktop\Programming-Theory\Sea_battle\x64\Debug\Sea_battle.exe
-     1>Сборка проекта "C:\Users\mm\Desktop\Programming-Theory\Sea_battle\Sea_battle\Sea_battle.vcxproj" завершена (целевые объекты Build).
+     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(14): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
+     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(15): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
+     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(310): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(343): error C2065: isHit: необъявленный идентификатор
+     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(370): error C2065: isHit: необъявленный идентификатор
+     1>Сборка проекта "C:\Users\mm\Desktop\Programming-Theory\Sea_battle\Sea_battle\Sea_battle.vcxproj" завершена (целевые объекты Build) с ошибкой.
 
-Сборка успешно завершена.
+Ошибка сборки.
 
-Затраченное время: 00:00:02.82
+Затраченное время: 00:00:00.85
