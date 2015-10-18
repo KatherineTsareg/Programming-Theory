@@ -1,15 +1,9 @@
-﻿Сборка начата 14.10.2015 19:48:29.
-     1>Проект "C:\Users\mm\Desktop\Programming-Theory\Sea_battle\Sea_battle\Sea_battle.vcxproj" в узле 2 (целевые объекты Build).
-     1>ClCompile:
-         C:\Program Files (x86)\VC\bin\x86_amd64\CL.exe /c /IC:\SFML\include /ZI /nologo /W3 /WX- /sdl /Od /D SFML_DYNAMIC /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"x64\Debug\\" /Fd"x64\Debug\vc140.pdb" /Gd /TP /errorReport:prompt Main.cpp
-         Main.cpp
-     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(14): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
-     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(15): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
-     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(310): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(343): error C2065: isHit: необъявленный идентификатор
-     1>c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(370): error C2065: isHit: необъявленный идентификатор
-     1>Сборка проекта "C:\Users\mm\Desktop\Programming-Theory\Sea_battle\Sea_battle\Sea_battle.vcxproj" завершена (целевые объекты Build) с ошибкой.
-
-Ошибка сборки.
-
-Затраченное время: 00:00:00.85
+﻿  Main.cpp
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(12): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(13): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(477): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(499): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(503): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(516): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(320): warning C4715: seachShipByCompStep5: значение возвращается не при всех путях выполнения
+  Sea_battle.vcxproj -> C:\Users\mm\Desktop\Programming-Theory\Sea_battle\x64\Debug\Sea_battle.exe
