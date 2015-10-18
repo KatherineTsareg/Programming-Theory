@@ -86,14 +86,26 @@ void render(RenderWindow & window, Sprite & s_map, Sprite & wallSprite, Sprite &
 		};
 	window.display();
 }
-/*void text(RenderWindow & window, Sprite & s_map)
-{
-	/*std::ostringstream fourDeckString;    // объявили переменную
-	fourDeckString << p.ostringstream;		//занесли в нее число очков, то есть формируем строку
-	text.setString(":" + fourDeckString.str());//задаем строку тексту и вызываем сформированную выше строку методом .str()
-	text.setPosition(0, 0);//задаем позицию текста, центр камеры
-	window.draw(text);//рисую этот текст
-}*/
+
+struct intelligence {
+	bool isStep = true;
+	bool win = false;
+	bool isHit = false;
+	bool step1 = true;
+	bool step2 = false;
+	bool step3 = false;
+	bool step4 = false;
+	bool step5 = false;
+	bool hit = true;
+	int dir = 0;
+	int step;
+	int numbCompShips = 20;
+	int numbPLayerShips = 20;
+	int numbStep = 0;
+	int x = 0;
+	int y = 0;
+};
+
 int seachShipByCompStep1(int i, int j, Music & hit_music) {
 	int hit = 1;
 	if (TileMap[i][j] == dot) { //пустота, значит мимо
@@ -319,7 +331,11 @@ bool seachShipByCompStep5(int dir, int i, int j, Music & hit_music) {
 	}
 }
 void alignmentOfComputerOneShip(int si, int sj)//расстановка кораблей компьютером
-{
+{	
+	for (int i = 0; i < HEIGHT_MAP; i++)
+		for (int j = 0; j < WIDTH_MAP; j++)
+			if ((TileMap[i][j] != ' ') && (i >= si) && (i < si + 10) && (j >= sj) && (j < sj + 10))
+				TileMap[i][j] = ' ';
 	for (int LengthShip = 4; LengthShip > 0; LengthShip--) {
 		int k = 1; //используем переменную к для цикла
 		int i;
@@ -401,27 +417,121 @@ void alignmentOfComputerOneShip(int si, int sj)//расстановка кораблей компьютеро
 				}
 		}
 	}
+	for (int i = 0; i < HEIGHT_MAP; i++)
+		for (int j = 0; j < WIDTH_MAP; j++)
+			if ((TileMap[i][j] == ' ') && (i >= si) && (i < si + 10) && (j >= sj) && (j < sj + 10))
+				TileMap[i][j] = dot;
+}
+void ComputerMove(struct intelligence *intel, Music & hit_music) {
+	(*intel).isHit = true;
+	if ((*intel).step1 == true) {
+		(*intel).x = rand() % 10 + 3;
+		(*intel).y = rand() % 10 + 1;
+		(*intel).step = seachShipByCompStep1((*intel).x, (*intel).y, hit_music);
+		if ((*intel).step == 0) {//на первом шаге попали мимо
+			(*intel).isHit = false;
+			(*intel).step2 = false;
+			(*intel).step1 = true;
+		}
+		else if ((*intel).step == 1) {
+			(*intel).isHit = true;
+			(*intel).step2 = true;
+			(*intel).step1 = false;
+			(*intel).numbPLayerShips--;
+		}
+		else if ((*intel).step == 2) {
+			(*intel).step1 = true;
+			(*intel).isHit = true;
+			(*intel).step2 = false;
+		}
+	}
+	///////////////////////ШАГ 2//////////////////
+	if ((*intel).step2 == true) {//поиск направления для удара по следующей ячейке, только когда в первый раз попали по ячейке
+		(*intel).dir = seachShipByCompStep2((*intel).x, (*intel).y);
+		if ((*intel).dir != 0) {
+			(*intel).step2 = false;
+			(*intel).step3 = true;
+			(*intel).isHit = true;
+		}
+		else {
+			(*intel).step1 = true;
+			(*intel).step2 = false;
+			(*intel).isHit = true;
+		}
+	}
+	///////////////////////ШАГ 3/////////////////
+	if ((*intel).step3 == true) {//проверяем направление
+		if (seachShipByCompStep3((*intel).dir, (*intel).x, (*intel).y, hit_music) == true) {
+			(*intel).step4 = true;
+			(*intel).step3 = false;
+			(*intel).isHit = true;
+		}
+		else {
+			(*intel).step2 = true;
+			(*intel).step3 = false;
+			(*intel).isHit = false;
+		}
+	}
+	///////////////////////ШАГ 4//////////////////
+	if ((*intel).step4 == true) {//прострел корабля по заданному направлению
+		if (seachShipByCompStep4((*intel).dir, (*intel).x, (*intel).y, hit_music) == 0) {
+			(*intel).isHit = false;
+			(*intel).step4 = false;
+			(*intel).step5 = true;//пойдем в другую чторону проверять на полное убийство корабля
+		}
+		else if (seachShipByCompStep4((*intel).dir, (*intel).x, (*intel).y, hit_music) == 1) {
+			(*intel).isHit = true;
+			(*intel).numbPLayerShips--;
+			if ((*intel).dir == 1)
+				(*intel).x--;
+			if ((*intel).dir == 2)
+				(*intel).y++;
+			if ((*intel).dir == 3)
+				(*intel).x++;
+			if ((*intel).dir == 4)
+				(*intel).y--;
+		}
+		else if (seachShipByCompStep4((*intel).dir, (*intel).x, (*intel).y, hit_music) == 2) {//встретили стенку или уже попадали на эти координаты
+			(*intel).isHit = true;
+			(*intel).step4 = false;
+			(*intel).step5 = true;//пойдем в другую чторону проверять на полное убийство корабля
+		}
+	}
+	///////////////////////ШАГ 5//////////////////
+	if (((*intel).step5 == true) && ((*intel).isHit = true)) {
+		if (seachShipByCompStep5((*intel).dir, (*intel).x, (*intel).y, hit_music) == false) {
+			(*intel).step5 = false;
+			(*intel).step1 = true;
+			(*intel).isHit = false;
+		}
+		else {
+			(*intel).isHit = true;
+			(*intel).step5 = true;
+			(*intel).numbPLayerShips--;
+		}
+	}
+}
+void PlayerMove(int i, int j, struct intelligence *intel, Music & hit_music) {
+	if (TileMap[i][j] == dot) { //мимо
+		TileMap[i][j] = past; //ставим точку
+		//water_music.play();
+		(*intel).hit = false;
+		//intel.numbStep++;
+	}
+	else if (TileMap[i][j] == one_ship) {//попал
+		TileMap[i][j] = hurt;//ставим крестик
+		hit_music.play();
+		(*intel).numbCompShips--;
+		//intel.numbStep++;
+		(*intel).hit = true;
+	}
+	(*intel).isStep = false;
 }
 int main()
 {
-	RenderWindow window(VideoMode(736, 544), "Sea War!");
-	bool isStep = true;
-	bool win = false;
-	bool hit = true;
-	bool isHit = false;
-	bool step1 = true;
-	bool step2 = false;
-	bool step3 = false;
-	bool step4 = false;
-	bool step5 = false;
-	int dir = 0;
-	int step;
-	int numbCompShips = 20;
-	int numbPLayerShips = 20;
-	int numbStep = 0;
-	int x = 0;
-	int y = 0;
-
+	RenderWindow window(VideoMode(736, 544), "Sea War!");	
+	intelligence intel;
+	
 	Image mapImage; //создаём объект Image(изображение)
 	mapImage.loadFromFile("images/map.psd");
 	Texture map;//текстура карты
@@ -461,12 +571,12 @@ int main()
 	if (!hit_music.openFromFile("audio/hit.wav"))
 		return -1; // error
 
-	Music water_music;
+	/*Music water_music;
 	SoundBuffer water_buffer;
 	Sound water_sound;
 	water_sound.setBuffer(water_buffer);
 	if (!water_music.openFromFile("audio/water.wav"))
-		return -1; // error
+		return -1; // error*/
 
 	Font font;//шрифт 
 	font.loadFromFile("font.ttf");//передаем нашему шрифту файл шрифта
@@ -475,12 +585,9 @@ int main()
 	
 	/////////////////////РАССТАВЛЯЕМ КОРАБЛИ///////////////////
 	srand(time(NULL));
+
 	alignmentOfComputerOneShip(si, sj1);
 	alignmentOfComputerOneShip(si, sj2);
-	for (int i = 0; i < HEIGHT_MAP; i++)
-		for (int j = 0; j < WIDTH_MAP; j++)
-			if (TileMap[i][j] == ' ')
-				TileMap[i][j] = dot;
 	//////////////////////////КОНЕЦ///////////////////////////////
 	while (window.isOpen())
 	{
@@ -488,7 +595,7 @@ int main()
 		int i = (pixPos.y / 32);
 		int j = (pixPos.x / 32);
 
-		render(window, s_map, wallSprite, s_button1, s_block, s_button2, s_button3, text, isHit, isStep, win);
+		render(window, s_map, wallSprite, s_button1, s_block, s_button2, s_button3, text, intel.isHit, intel.isStep, intel.win);
 		sf::Event event;
 		while (window.pollEvent(event))
 		{
@@ -501,191 +608,63 @@ int main()
 			if (event.type == Event::MouseButtonPressed)
 				if (event.key.code == Mouse::Left)
 					if (s_button2.getGlobalBounds().contains(pixPos.x, pixPos.y)) {
-						for (int i = 0; i < HEIGHT_MAP; i++)
-							for (int j = 0; j < WIDTH_MAP; j++)
-								if ((TileMap[i][j] != ' ') && (i <= 12) && (i >= 3) && (j <= 10) && (j >= 1))
-									TileMap[i][j] = ' ';
 						alignmentOfComputerOneShip(si, sj1);
-						for (int i = 0; i < HEIGHT_MAP; i++)
-							for (int j = 0; j < WIDTH_MAP; j++)
-								if (TileMap[i][j] == ' ')
-									TileMap[i][j] = dot;
+
 					}
 			if (event.type == Event::MouseButtonPressed)
 				if (event.key.code == Mouse::Left)
 					if (s_button1.getGlobalBounds().contains(pixPos.x, pixPos.y)) {
-						for (int i = 0; i < HEIGHT_MAP; i++)
-							for (int j = 0; j < WIDTH_MAP; j++)
-								if (((TileMap[i][j] != ' ') && (i <= 12) && (i >= 3) && (j <= 10) && (j >= 1)) || ((TileMap[i][j] != ' ') && (i <= 12) && (i >= 3) && (j <= 21) && (j >= 12)))
-									TileMap[i][j] = ' ';
 						alignmentOfComputerOneShip(si, sj1);
 						alignmentOfComputerOneShip(si, sj2);
-						for (int i = 0; i < HEIGHT_MAP; i++)
-							for (int j = 0; j < WIDTH_MAP; j++)
-								if (TileMap[i][j] == ' ')
-									TileMap[i][j] = dot;
-						isStep = true;
-						hit = true;
-						isHit = false;
-						step1 = true;
-						step2 = false;
-						step3 = false;
-						step4 = false;
-						step5 = false;
-						win = false;
-						dir = 0;
-						numbCompShips = 20;
-						numbPLayerShips = 20;
-						numbStep = 0;
-						x = 0;
-						y = 0;
+						intel.isStep = true;
+						intel.hit = true;
+						intel.isHit = false;
+						intel.step1 = true;
+						intel.step2 = false;
+						intel.step3 = false;
+						intel.step4 = false;
+						intel.step5 = false;
+						intel.win = false;
+						intel.dir = 0;
+						intel.numbCompShips = 20;
+						intel.numbPLayerShips = 20;
+						intel.numbStep = 0;
+						intel.x = 0;
+						intel.y = 0;
 					}
 			i = (pixPos.y / 32);
 			j = (pixPos.x / 32);
-			if ((numbCompShips > 0) && (numbPLayerShips > 0)) {
+			if ((intel.numbCompShips > 0) && (intel.numbPLayerShips > 0)) {
 				///////////////////////ХОД ИГРОКА///////////////////////////
-				if ((isStep == true) && (isHit == false)) {
-
+				//cout << "MOVE THE PLAYER! isStep = "<< intel.isStep << ", isHit = " << intel.isHit << "\n";
+				if ((intel.isStep == true) && (intel.isHit == false)) {
 					if (event.type == Event::MouseButtonPressed)
 						if (event.key.code == Mouse::Left)
 							if ((i <= 12) && (i >= 3) && (j <= 21) && (j >= 12)) //и при этом координата курсора попадает
-							{
-								if (TileMap[i][j] == dot) { //мимо
-									TileMap[i][j] = past; //ставим точку
-									//water_music.play();
-									hit = false;
-									numbStep++;
-								}
-								else if (TileMap[i][j] == one_ship) {//попал
-									TileMap[i][j] = hurt;//ставим крестик
-									hit_music.play();
-									numbCompShips--;
-									numbStep++;
-									hit = true;
-								}
-								isStep = false;
-							}
+								PlayerMove(i, j, &intel, hit_music);
+				}else
+					intel.isStep = false;
+				render(window, s_map, wallSprite, s_button1, s_block, s_button2, s_button3, text, intel.isHit, intel.isStep, intel.win);
+				////////////////////////ХОД БОТА////////////////////////////////
+				if ((intel.isStep == false) && (intel.hit == false)) {
+					ComputerMove(&intel, hit_music);
+					intel.isStep = true;
 				}
 				else
-					isStep = false;
-				render(window, s_map, wallSprite, s_button1, s_block, s_button2, s_button3, text, isHit, isStep, win);
-				////////////////////////ХОД БОТА////////////////////////////////
-				if ((isStep == false) && (hit == false)) {
-					isHit = true;
-					/////////////////////ШАГ 1////////////////////
-					if (step1 == true) {
-						x = rand() % 10 + 3;
-						y = rand() % 10 + 1;
-						step = seachShipByCompStep1(x, y, hit_music);
-						if (step == 0) {//на первом шаге попали мимо
-							isHit = false;
-							step2 = false;
-							step1 = true;
-						}
-						else if (step == 1) {
-							isHit = true;
-							step2 = true;
-							step1 = false;
-							numbPLayerShips--;
-						}
-						else if (step == 2) {
-							step1 = true;
-							isHit = true;
-							step2 = false;
-						}
-					}
-					///////////////////////ШАГ 2//////////////////
-					if (step2 == true) {//поиск направления для удара по следующей ячейке, только когда в первый раз попали по ячейке
-						dir = seachShipByCompStep2(x, y);
-						if (dir != 0) {
-							step2 = false;
-							step3 = true;
-							isHit = true;
-						}
-						else {
-							step1 = true;
-							step2 = false;
-							isHit = true;
-						}
-					}
-					///////////////////////ШАГ 3/////////////////
-					if (step3 == true) {//проверяем направление
-						if (seachShipByCompStep3(dir, x, y, hit_music) == true) {
-							step4 = true;
-							step3 = false;
-							isHit = true;
-							//numbPLayerShips--;
-						}
-						else {
-							step2 = true;
-							step3 = false;
-							isHit = false;
-						}
-					}
-					///////////////////////ШАГ 4//////////////////
-					if (step4 == true) {//прострел корабля по заданному направлению
-						if (seachShipByCompStep4(dir, x, y, hit_music) == 0) {
-							isHit = false;
-							step4 = false;
-							step5 = true;//пойдем в другую чторону проверять на полное убийство корабля
-							//numbPLayerShips--;
-						}
-						else if (seachShipByCompStep4(dir, x, y, hit_music) == 1) {
-							isHit = true;
-							numbPLayerShips--;
-							if (dir == 1)
-								x--;
-							if (dir == 2)
-								y++;
-							if (dir == 3)
-								x++;
-							if (dir == 4)
-								y--;
-						}
-						else if (seachShipByCompStep4(dir, x, y, hit_music) == 2) {//встретили стенку или уже попадали на эти координаты
-							isHit = true;
-							step4 = false;
-							step5 = true;//пойдем в другую чторону проверять на полное убийство корабля
-						}
-					}//std::cout << "step4! isHit = " << isHit << "\n";
-					///////////////////////ШАГ 5//////////////////
-					if ((step5 == true) && (isHit = true)) {
-						std::cout << "step5\n";
-						if (seachShipByCompStep5(dir, x, y, hit_music) == false) {
-							step5 = false;
-							step1 = true;
-							isHit = false;
-							//numbPLayerShips--;
-						}
-						else {
-							isHit = true;
-							step5 = true;
-							numbPLayerShips--;
-						}
-					}
-				}
-				isStep = true;
+					intel.isStep = true;
 			}
-			else if (numbCompShips <= 0) {
-				isHit = false;
-				isStep = false;
-				step1 = false;
-				step2 = false;
-				step3 = false;
-				step4 = false;
-				step5 = true;
-				win = true;
+			else if ((intel.numbCompShips <= 0) || (intel.numbPLayerShips <= 0)) {
+				intel.isHit = false;
+				intel.isStep = false;
+				intel.step1 = false;
+				intel.step2 = false;
+				intel.step3 = false;
+				intel.step4 = false;
+				intel.step5 = true;
+				intel.win = true;
 			}
-			else if (numbPLayerShips <= 0) {
-				isHit = false;
-				isStep = true;
-				step1 = false;
-				step2 = false;
-				step3 = false;
-				step4 = false;
-				step5 = true;
-				win = true;
-			}
+			if (intel.numbPLayerShips <= 0)
+				intel.isStep = true;
 		}
 	}
 	return 0;
