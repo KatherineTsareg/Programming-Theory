@@ -1,9 +1,18 @@
 ﻿  Main.cpp
 c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(12): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
 c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(13): warning C4244: инициализация: преобразование "float" в "int", возможна потеря данных
-c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(587): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(91): warning C4244: аргумент: преобразование "const float" в "int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(93): warning C4244: аргумент: преобразование "const float" в "int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(95): warning C4244: аргумент: преобразование "const float" в "int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(97): warning C4244: аргумент: преобразование "const float" в "int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(99): warning C4244: аргумент: преобразование "const float" в "int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(99): warning C4244: аргумент: преобразование "float" в "int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(101): warning C4244: аргумент: преобразование "const float" в "int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(101): warning C4244: аргумент: преобразование "float" в "int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(583): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(602): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
 c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(606): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
-c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(610): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
-c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(616): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
-c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(332): warning C4715: seachShipByCompStep5: значение возвращается не при всех путях выполнения
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(612): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(119): warning C4715: seachShipByCompStep1: значение возвращается не при всех путях выполнения
+c:\users\mm\desktop\programming-theory\sea_battle\sea_battle\main.cpp(328): warning C4715: seachShipByCompStep5: значение возвращается не при всех путях выполнения
   Sea_battle.vcxproj -> C:\Users\mm\Desktop\Programming-Theory\Sea_battle\x64\Debug\Sea_battle.exe
