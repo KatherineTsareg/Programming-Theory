@@ -4,16 +4,17 @@
 #include <iostream>
 #include <ctime>
 
-using namespace sf; //включаем пространство имен sf, чтобы постоянно не писать sf::
+using namespace sf;
 using namespace std;
 
 const int maxLengthShip = 4;
 const float blockSize = 32.f;
-const int windowHight = blockSize * heighMap;
+const int windowHeigh = blockSize * heighMap;
 const int windowWidth = blockSize * widthMap;
+const int fieldSize = 10;
 const char wall = 's';
-const char empty = ' ';
-const char oneShip = 'X';
+const char empty123 = ' ';
+const char isShip = 'X';
 const char dot = '.';
 const char past = '1';//мимо
 const char hurt = '2';//ранил
@@ -21,174 +22,138 @@ const int si = 3;
 const int sj1 = 1;
 const int sj2 = 12;
 const int stopTime = 600;
+const int upDir = 1;
+const int rightDir = 2;
+const int downDir = 3;
+const int leftDir = 4;
+const int falseReturn = 0;
+const int trueReturn = 1;
+const int errorReturn = 2;
 
-struct intelligence {
-	bool isStep = true;
-	bool win = false;
-	bool isHit = false;
-	bool step1 = true;
-	bool step2 = false;
-	bool step3 = false;
-	bool step4 = false;
-	bool step5 = false;
-	bool hit = true;
-	int dir = 0;
-	int step;
-	int numbCompShips = 20;
-	int numbPLayerShips = 20;
-	int numbStep = 0;
-	int x = 0;
-	int y = 0;
+struct GraphicResource {
+	Image* im;
+	Texture* tex;
+	Sprite* spr;
 };
-void render(RenderWindow & window, Sprite & mapSprite, Sprite & wallSprite, Sprite & button1, Sprite & blockSprite, Sprite & button2, Sprite & button3, Text & text, bool isHit, bool isStep, bool win)
+
+void CleanTheMemory(GraphicResource & gr) {
+	delete gr.im;
+	delete gr.tex;
+	delete gr.spr;
+}
+
+GraphicResource MakeTheSprite (String fileName) {
+	GraphicResource gr;
+	gr.im = new Image();
+	gr.tex = new Texture();
+	gr.spr = new Sprite();
+	gr.im->loadFromFile("images/" + fileName);
+	gr.tex->loadFromImage(*gr.im);
+	gr.spr->setTexture(*gr.tex);
+	return gr;
+}
+
+void DrawTheSprite(RenderWindow & window, Sprite & sprite, int i, int j, int spriteWidth, int spriteHeigh, int x, int y) {
+	sprite.setTextureRect(IntRect(i, j, spriteWidth, spriteHeigh));//рисуем 
+	sprite.setPosition(x, y);//задаем начальные координаты появления спрайта
+	window.draw(sprite);//рисуем квадратики на экран
+}
+
+void DrawTheText(RenderWindow & window, Text text, String string, int x, int y) {
+	text.setString(string);//задает строку тексту
+	text.setPosition(x, y);//задаем позицию текста, центр камеры
+	window.draw(text);//рисую этот текст
+}
+
+void Render(Sprite & background, RenderWindow & window, Sprite & map, Sprite & button1, Sprite & block, Sprite & button2, Sprite & button3, Text text, Game * g)
 {
 	window.clear();
-	wallSprite.setTextureRect(IntRect(0, 0, windowWidth, windowHight));//рисуем 
-	wallSprite.setPosition(0, 0);//задаем начальные координаты появления спрайта
-	window.draw(wallSprite);//рисуем квадратики на экран
 	
-	button1.setTextureRect(IntRect(0, 0, 130, 100));//рисуем 
-	button1.setPosition(50, 430);//задаем начальные координаты появления спрайта
-	window.draw(button1);//рисуем квадратики на экран
-
-	button2.setTextureRect(IntRect(0, 100, 130, 100));//рисуем 
-	button2.setPosition(300, 430);//задаем начальные координаты появления спрайта
-	window.draw(button2);//рисуем квадратики на экран
-
-	button3.setTextureRect(IntRect(0, 200, 130, 100));//рисуем 
-	button3.setPosition(550, 430);//задаем начальные координаты появления спрайта
-	window.draw(button3);//рисуем квадратики на экран
-
-	blockSprite.setTextureRect(IntRect(0, 0, 672, 90));//рисуем 
-	blockSprite.setPosition(32, 10);//задаем начальные координаты появления спрайта
-	window.draw(blockSprite);//рисуем квадратики на экран
+	DrawTheSprite(window, background, 0, 0, windowWidth, windowHeigh, 0, 0);
+	DrawTheSprite(window, button1, 0, 0, 130, 100, 50, 430);
+	DrawTheSprite(window, button2, 0, 100, 130, 100, 300, 430);
+	DrawTheSprite(window, button3, 0, 200, 130, 100, 550, 430);
+	DrawTheSprite(window, block, 0, 0, 672, 90, 32, 10);
 	
-	if ((win == true) && (isStep == false)) {
-		text.setString(L"Вы выйграли! Может сыграем еще? ");//задает строку тексту
-		text.setPosition(100, 25);//задаем позицию текста, центр камеры
-		window.draw(text);//рисую этот текст
-	}
-	else if (win == true) {
-		text.setString(L"Вы проиграли. Может сыграем еще?");//задает строку тексту
-		text.setPosition(120, 25);//задаем позицию текста, центр камеры
-		window.draw(text);//рисую этот текст
-	}
-	if ((isHit == false) && (isStep == true) && (win == false)) {
-		text.setString(L"Ваш ход!");//задает строку тексту
-		text.setPosition(300, 25);//задаем позицию текста, центр камеры
-		window.draw(text);//рисую этот текст
-	}
-	else if ((isHit != false) && (isStep != true)) {
-		text.setString(L"Ход противника!");//задает строку тексту
-		text.setPosition(250, 25);//задаем позицию текста, центр камеры
-		window.draw(text);//рисую этот текст
-	}
+	if ((g->win) && (g->numbCompShips == 0))
+		DrawTheText(window, text, L"Вы выйграли! Может сыграем еще?", 100, 25);
+	else if ((g->win) && (g->numbPLayerShips == 0))
+		DrawTheText(window, text, L"Вы проиграли. Может сыграем еще?", 120, 25);
+	if ((!g->isHit) && (g->isStep) && (!g->win))
+		DrawTheText(window, text, L"Ваш ход!", 300, 25);
+	else if ((g->isHit) && (!g->isStep))
+		DrawTheText(window, text, L"Ход противника!", 250, 25);
 
 	for (int i = 0; i < heighMap; i++)
 		for (int j = 0; j < widthMap; j++)
 		{
 			if (TileMap[i][j] == wall)
-				mapSprite.setTextureRect(IntRect(160, 0, blockSize, blockSize)); //если встретили 's', то рисуем empty
-			if ((TileMap[i][j] == oneShip) && (i < si + 10) && (i >= si) && (j < sj1 + 10) && (j >= sj1))
-				mapSprite.setTextureRect(IntRect(blockSize, 0, blockSize, blockSize));
-			if ((TileMap[i][j] == oneShip) && (i < si + 10) && (i >= si) && (j < sj2 + 10) && (j >= sj2))
-				mapSprite.setTextureRect(IntRect(0, 0, blockSize, blockSize));//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!00000
+				map.setTextureRect(IntRect(160, 0, blockSize, blockSize)); //если встретили 's', то рисуем empty
+			if ((TileMap[i][j] == isShip) && (i < si + fieldSize) && (i >= si) && (j < sj1 + fieldSize) && (j >= sj1))
+				map.setTextureRect(IntRect(blockSize, 0, blockSize, blockSize));
+			if ((TileMap[i][j] == isShip) && (i < si + fieldSize) && (i >= si) && (j < sj2 + fieldSize) && (j >= sj2))
+				map.setTextureRect(IntRect(0, 0, blockSize, blockSize));//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!00000
 			if (TileMap[i][j] == dot)
-				mapSprite.setTextureRect(IntRect(0, 0, blockSize, blockSize));
-			if ((TileMap[i][j] == '1'))
-				mapSprite.setTextureRect(IntRect(blockSize * 2, 0, blockSize, blockSize));//если встретили '1', то рисуем картинку "попал мимо" (точка)
-			if ((TileMap[i][j] == '2'))
-				mapSprite.setTextureRect(IntRect(blockSize * 3, 0, blockSize, blockSize));// если встретили '2', то рисуем картинку "стоит корабль" (крестик)
-			mapSprite.setPosition(j * blockSize, i * blockSize);
-			window.draw(mapSprite);//рисуем квадратики на экран
-		};
+				map.setTextureRect(IntRect(0, 0, blockSize, blockSize));
+			if ((TileMap[i][j] == past))
+				map.setTextureRect(IntRect(blockSize * 2, 0, blockSize, blockSize));//если встретили '1', то рисуем картинку "попал мимо" (точка)
+			if ((TileMap[i][j] == hurt))
+				map.setTextureRect(IntRect(blockSize * 3, 0, blockSize, blockSize));// если встретили '2', то рисуем картинку "стоит корабль" (крестик)
+			
+			map.setPosition(j * blockSize, i * blockSize);
+			window.draw(map);//рисуем квадратики на экран
+		}
 	window.display();
 }
-int seachShipByCompStep1(int i, int j, Music & hit_music) {
+
+int SeachShipByCompStep1(int i, int j, Music & hit_music) {
 	if (TileMap[i][j] == dot) { //пустота, значит мимо
 		sleep(milliseconds(stopTime));
 		TileMap[i][j] = past;
-		return 0;
-	}else if (TileMap[i][j] == oneShip) {//попал, значит ранил
+		return falseReturn;
+	}else if (TileMap[i][j] == isShip) {//попал, значит ранил
 		sleep(milliseconds(stopTime));
 		hit_music.play();
 		TileMap[i][j] = hurt;
-		return 1;
+		return trueReturn;
 	}else if ((TileMap[i][j] == hurt)||(TileMap[i][j] == past))
-		return 2;
+		return errorReturn;
 }
-int seachShipByCompStep2(int i, int j){
+
+int SeachShipByCompStep2(int i, int j) {
 	int dir;//1-вверх, 2-вправо, 3-вниз, 4-влево
 	bool hit = true;
 	bool left = true;
 	bool right = true;
 	bool up = true;
 	bool down = true;
-	if (TileMap[i - 1][j] == past)
+	if ((TileMap[i - 1][j] == past) || (TileMap[i - 1][j] == wall) || (TileMap[i - 1][j] == hurt))
 		up = false; //прохода нет
-	if (TileMap[i][j + 1] == past)
+	if ((TileMap[i][j + 1] == past) || (TileMap[i][j + 1] == wall) || (TileMap[i][j + 1] == hurt))
 		right = false;
-	if (TileMap[i + 1][j] == past)
+	if ((TileMap[i + 1][j] == past) || (TileMap[i + 1][j] == wall) || (TileMap[i + 1][j] == hurt))
 		down = false;
-	if (TileMap[i][j - 1] == past)
+	if ((TileMap[i][j - 1] == past) || (TileMap[i][j - 1] == wall) || (TileMap[i][j - 1] == hurt))
 		left = false;
-	if (TileMap[i - 1][j] == past) //встретили вверху стенку
-		up = false;
-	if (TileMap[i + 1][j] == wall)
-		down = false;
-	if (TileMap[i][j - 1] == wall)
-		 left = false;
-	if (TileMap[i][j + 1] == wall)
-		right = false;
-	if (((TileMap[i - 1][j] == hurt) || (TileMap[i - 1][j] == past)) && ((TileMap[i + 1][j] == hurt) || (TileMap[i + 1][j] == past)) && ((TileMap[i][j - 1] == hurt) || (TileMap[i][j - 1] == past)) && ((TileMap[i][j + 1] == hurt) || (TileMap[i][j + 1] == past)))
+	if ((!up) && (!down) && (!left) && (!right))//если вокруг все точки, то это однопалубный корабль и он убит
 		hit = false;
-	if ((up == false) && (down == false) && (left == false) && (right == false))//если вокруг все точки, то это однопалубный корабль и он убит
-		hit = false;
-	else if ((up == true) && (down == true) && (left == true) && (right == true)) {//если вокруг нет "точек", рандомно ищем направление
-		dir = rand() % 4 + 1;
-		if (dir == 1){ //up
-			up = true;
-			down = false;
-			right = false;
-			left = false;
-		}
-		else if (dir == 2) { //right
-			up = false;
-			down = false;
-			right = true;
-			left = false;
-		}
-		else if (dir == 3) { //down
-			up = false;
-			down = true;
-			right = false;
-			left = false;
-		}
-		else if (dir == 4) { //left
-			up = false;
-			down = false;
-			right = false;
-			left = true;
-		}		
-	}
-	if (hit != false) {
+	if (hit) {
 		int* Arr;
 		Arr = new int[4];
 		int k = 0;
-		if (up == true) {
+		if (up) {
 			Arr[k] = 1;
 			k++;
-		}if (right == true) {
+		}if (right) {
 			Arr[k] = 2;
 			k++;
-		}if (down == true) {
+		}if (down) {
 			Arr[k] = 3;
 			k++;
-		}if (left == true) {
+		}if (left) {
 			Arr[k] = 4;
 			k++;
-		}
-		if (k == 1)
+		}if (k == 1)
 			return Arr[0];
 		else {
 			dir = rand() % k;
@@ -196,20 +161,23 @@ int seachShipByCompStep2(int i, int j){
 		}
 		delete[]Arr;
 	}
-	else
-		return 0;
+	else {
+		return falseReturn;
+	}
 }
-bool seachShipByCompStep3(int dir, int i, int j, Music & hit_music) {
+
+bool SeachShipByCompStep3(int dir, int i, int j, Music & hit_music) 
+{
 	bool wounded = false;
-	if (dir == 1)
+	if (dir == upDir)
 		i--;
-	if (dir == 2)
+	if (dir == rightDir)
 		j++;
-	if (dir == 3)
+	if (dir == downDir)
 		i++;
-	if (dir == 4)
+	if (dir == leftDir)
 		j--;
-	if (TileMap[i][j] == oneShip) {
+	if (TileMap[i][j] == isShip) {
 		sleep(milliseconds(stopTime));
 		hit_music.play();
 		TileMap[i][j] = hurt;
@@ -223,445 +191,374 @@ bool seachShipByCompStep3(int dir, int i, int j, Music & hit_music) {
 	}
 	return wounded;
 }
-int seachShipByCompStep4(int dir, int i, int j, Music & hit_music){
+
+int SeachShipByCompStep4(int dir, int i, int j, Music & hit_music)
+{
 	int wounded = 0;
-	if (dir == 1)
+	if (dir == upDir)
 		i--;
-	if (dir == 2)
+	if (dir == rightDir)
 		j++;
-	if (dir == 3)
+	if (dir == downDir)
 		i++;
-	if (dir == 4)
+	if (dir == leftDir)
 		j--;
-	if (TileMap[i][j] == oneShip) {
+	if (TileMap[i][j] == isShip) {
 		sleep(milliseconds(stopTime));
 		hit_music.play();
 		TileMap[i][j] = hurt;
 		wounded = 1;
 	}else if (TileMap[i][j] == hurt) {
 		TileMap[i][j] = hurt;
-		wounded = 1;
+		wounded = trueReturn;
 	}else if (TileMap[i][j] == wall)
-		wounded = 2;//error
+		wounded = errorReturn;//error
 	else if (TileMap[i][j] == past)
-		wounded = 0;
+		wounded = falseReturn;
 	else {
 		sleep(milliseconds(stopTime));
 		TileMap[i][j] = past;
-		wounded = 0;
+		wounded = falseReturn;
 	}
 	return wounded;
 }
-bool seachShipByCompStep5(int dir, int i, int j, Music & hit_music) {
-	if (dir == 1) {
-		while (TileMap[i][j] == hurt)
+
+bool Firing(int i, int j, Music & hit_music)
+{
+	if ((TileMap[i][j] == past) || (TileMap[i][j] == dot))
+	{
+		sleep(milliseconds(stopTime));
+		TileMap[i][j] = past;
+		return false;
+	}
+	else if ((TileMap[i][j] == isShip) || (TileMap[i][j] == hurt))
+	{
+		sleep(milliseconds(stopTime));
+		hit_music.play();
+		TileMap[i][j] = hurt;
+		return true;
+	}
+	else if (TileMap[i][j] == wall)
+		return false;
+}
+
+bool SeachShipByCompStep5(int dir, int i, int j, Music & hit_music) {
+	bool hit = false;
+	while (TileMap[i][j] == hurt) {
+		if (dir == upDir)
 			i++;
-		if ((TileMap[i][j] == past) || (TileMap[i][j] == dot)) {
-			sleep(milliseconds(stopTime));
-			TileMap[i][j] = past;
-			return false;
-		}
-		else if ((TileMap[i][j] == oneShip) || (TileMap[i][j] == hurt)) {
-			sleep(milliseconds(stopTime));
-			hit_music.play();
-			TileMap[i][j] = hurt;
+		if (dir == rightDir)
+			j--;
+		if (dir == downDir)
+			i--;
+		if (dir == leftDir)
+			j++;
+	}
+	if (Firing(i, j, hit_music)) {
+		hit = true;
+		if (dir == upDir)
 			i++;
-			return true;
-		}
-		else if (TileMap[i][j] == wall)
-			return false;
-	}
-	if (dir == 2) {
-		while (TileMap[i][j] == hurt)
+		if (dir == rightDir)
 			j--;
-		if ((TileMap[i][j] == past) || (TileMap[i][j] == dot)) {
-			sleep(milliseconds(stopTime));
-			TileMap[i][j] = past;
-			return false;
-		}
-		else if ((TileMap[i][j] == oneShip) || (TileMap[i][j] == hurt)) {
-			sleep(milliseconds(stopTime));
-			hit_music.play();
-			TileMap[i][j] = hurt;
-			j--;
-			return true;
-		}
-		else if (TileMap[i][j] == wall)
-			return false;
-	}
-	if (dir == 3) {
-		while (TileMap[i][j] == hurt)
+		if (dir == downDir)
 			i--;
-		if ((TileMap[i][j] == past) || (TileMap[i][j] == dot)) {
-			sleep(milliseconds(stopTime));
-			TileMap[i][j] = past;
-			return false;
-		}
-		else if ((TileMap[i][j] == oneShip) || (TileMap[i][j] == '3')) {
-			sleep(milliseconds(stopTime));
-			hit_music.play();
-			TileMap[i][j] = hurt;
-			i--;
-			return true;
-		}
-		else if (TileMap[i][j] == wall)
-			return false;
+		if (dir == leftDir)
+			j++;
 	}
-	if (dir == 4) {
-		while (TileMap[i][j] == hurt)
-			j++;
-		if ((TileMap[i][j] == past) || (TileMap[i][j] == dot)) {
-			sleep(milliseconds(stopTime));
-			TileMap[i][j] = past;
-			return false;
+	return hit;
+}
+
+void CompleteField(int si, int sj, char symbol) {
+	for (int i = si; i < si + fieldSize; i++)
+		for (int j = sj; j < sj + fieldSize; j++) 
+		{
+			if (symbol == empty123) {
+				if (TileMap[i][j] != empty123)
+					TileMap[i][j] = symbol;
+			}
+			else if (symbol == dot) 
+			{
+				if (TileMap[i][j] == empty123)
+					TileMap[i][j] = symbol;
+			}
 		}
-		else if ((TileMap[i][j] == oneShip) || (TileMap[i][j] == hurt)) {
-			sleep(milliseconds(stopTime));
-			hit_music.play();
-			TileMap[i][j] = hurt;
-			j++;
-			return true;
+}
+
+void TestingAndPlacementOfShips(AlignmentShips * as, int sj, int si, int LengthShip, int horizontal, int vertical) {
+	as->loose = true;
+	if ((as->j * horizontal + as->i * vertical + LengthShip) < (sj *horizontal + si*vertical + fieldSize)) {
+		if (TileMap[as->i - vertical][as->j - horizontal] == isShip)
+			as->loose = false;
+		for (int count = 0; count <= LengthShip; count++)//проверяем, совбодны ли ячейки рядом
+			if ((TileMap[as->i + (count * vertical)][as->j + count * horizontal] != empty123) || (TileMap[as->i - horizontal + count * vertical][as->j - vertical + count * horizontal] == isShip) || (TileMap[as->i + horizontal + count * vertical][as->j + vertical + count * horizontal] == isShip))
+				as->loose = false;
+		if ((TileMap[as->i + LengthShip * vertical][as->j + LengthShip * horizontal] == isShip) || (TileMap[as->i - horizontal + LengthShip * vertical][as->j + LengthShip * horizontal - vertical] == isShip) || (TileMap[as->i + horizontal + LengthShip * vertical][as->j + LengthShip * horizontal + vertical] == isShip))//проверяем последний квадратик на возможность поставить кораблик
+			as->loose = false;
+		if (as->loose) { //если можно разместить корабль, то размещаем
+			if (TileMap[as->i - vertical][as->j - horizontal] != wall)
+				TileMap[as->i - vertical][as->j - horizontal] = dot;
+			if (TileMap[as->i - horizontal - vertical][as->j - horizontal - vertical] != wall)
+				TileMap[as->i - horizontal - vertical][as->j - horizontal - vertical] = dot;
+			if (TileMap[as->i + horizontal - vertical][as->j - horizontal + vertical] != wall)
+				TileMap[as->i + horizontal - vertical][as->j - horizontal + vertical] = dot;
+			if (TileMap[as->i + LengthShip * vertical][as->j + LengthShip * horizontal] != wall)
+				TileMap[as->i + LengthShip * vertical][as->j + LengthShip * horizontal] = dot;
+			if (TileMap[as->i - horizontal + LengthShip * vertical][as->j + LengthShip * horizontal - vertical] != wall)
+				TileMap[as->i - horizontal + LengthShip * vertical][as->j + LengthShip * horizontal - vertical] = dot;
+			if (TileMap[as->i + horizontal + LengthShip * vertical][as->j + LengthShip * horizontal + vertical] != wall)
+				TileMap[as->i + horizontal + LengthShip * vertical][as->j + LengthShip * horizontal + vertical] = dot;
+			for (int count = 0; count < LengthShip; count++) {
+				TileMap[as->i + count * vertical][as->j + count * horizontal] = isShip;
+				if (TileMap[as->i - horizontal + count * vertical][as->j + count * horizontal - vertical] != wall)
+					TileMap[as->i - horizontal + count * vertical][as->j + count * horizontal - vertical] = dot;
+				if (TileMap[as->i + horizontal + count * vertical][as->j + count * horizontal + vertical] != wall)
+					TileMap[as->i + horizontal + count * vertical][as->j + count * horizontal + vertical] = dot;
+			}
+			as->k++;
 		}
-		else if (TileMap[i][j] == wall)
-			return false;
 	}
 }
-void alignmentOfComputerOneShip(int si, int sj)//расстановка кораблей компьютером
-{	
-	for (int i = 0; i < heighMap; i++)
-		for (int j = 0; j < widthMap; j++)
-			if ((TileMap[i][j] != ' ') && (i >= si) && (i < si + 10) && (j >= sj) && (j < sj + 10))
-				TileMap[i][j] = ' ';
-	for (int LengthShip = 4; LengthShip > 0; LengthShip--) {
-		int k = 1; //используем переменную к для цикла
-		int i;
-		int j;
-		int location;
-		bool loose;
-		int count;
-		while (k <= (5 - LengthShip)) {
-			i = rand() % 10 + si;
-			j = rand() % 10 + sj;
-			location = rand() % 2 + 1; //расположение корабля, 1 - горизонтально, 2 - вертикально
-			if ((i < si + 10) && (j < sj + 10) && (TileMap[i][j] == ' '))
-				if (location == 1) {
-					loose = true;
-					if ((j + LengthShip) < sj + 10) {
-						if (TileMap[i][j - 1] == oneShip)
-							loose = false;
-						for (count = 0; count <= LengthShip; count++)//проверяем, совбодны ли ячейки рядом
-							if ((TileMap[i][j + count] != ' ') || (TileMap[i - 1][j + count] == oneShip) || (TileMap[i + 1][j + count] == oneShip))
-								loose = false;
-						if ((TileMap[i][j + LengthShip] == oneShip) || (TileMap[i - 1][j + LengthShip] == oneShip) || (TileMap[i + 1][j + LengthShip] == oneShip))//проверяем последний квадратик на возможность поставить кораблик
-							loose = false;
-						if (loose == true) { //если можно разместить корабль, то размещаем
-							if (TileMap[i][j - 1] != wall)
-								TileMap[i][j - 1] = dot;
-							if (TileMap[i - 1][j - 1] != wall)
-								TileMap[i - 1][j - 1] = dot;
-							if (TileMap[i + 1][j - 1] != wall)
-								TileMap[i + 1][j - 1] = dot;
-							if (TileMap[i][j + LengthShip] != wall)
-								TileMap[i][j + LengthShip] = dot;
-							if (TileMap[i - 1][j + LengthShip] != wall)
-								TileMap[i - 1][j + LengthShip] = dot;
-							if (TileMap[i + 1][j + LengthShip] != wall)
-								TileMap[i + 1][j + LengthShip] = dot;
-							for (count = 0; count < LengthShip; count++) {
-								TileMap[i][j + count] = oneShip;
-								if (TileMap[i - 1][j + count] != wall)
-									TileMap[i - 1][j + count] = dot;
-								if (TileMap[i + 1][j + count] != wall)
-									TileMap[i + 1][j + count] = dot;
-							}
-							k++;
-						}
-					}
-					else if (location == 2) { //вертикально
-						loose = true;
-						if ((i + LengthShip) < si + 10)
-							if (TileMap[i - 1][j] == oneShip)//проверяем предыдущую ячейку
-								loose = false;
-						for (count = 1; count < LengthShip; count++)//проверяем, совбодны ли ячейки рядом
-							if ((TileMap[i + count][j] != ' ') || (TileMap[i + count][j + 1] == oneShip) || (TileMap[i + count][j - 1] == oneShip))
-								loose = false;
-						if ((TileMap[i + LengthShip][j] == oneShip) || (TileMap[i + LengthShip][j - 1] == oneShip) || (TileMap[i + LengthShip][j + 1] == oneShip))//проверяем последний квадратик на возможность поставить кораблик
-							loose = false;
-						if (loose == true) {
-							if (TileMap[i - 1][j] != wall)
-								TileMap[i - 1][j] = dot;
-							if (TileMap[i - 1][j - 1] != wall)
-								TileMap[i - 1][j - 1] = dot;
-							if (TileMap[i - 1][j + 1] != wall)
-								TileMap[i - 1][j + 1] = dot;
-							if (TileMap[i + LengthShip][j] != wall)
-								TileMap[i + LengthShip][j] = dot;
-							if (TileMap[i + LengthShip][j - 1] != wall)
-								TileMap[i + LengthShip][j - 1] = dot;
-							if (TileMap[i + LengthShip][j + 1] != wall)
-								TileMap[i + LengthShip][j + 1] = dot;
-							for (count = 0; count < LengthShip; count++) {
-								TileMap[i + count][j] = oneShip;
-								if (TileMap[i + count][j + 1] != wall)
-									TileMap[i + count][j + 1] = dot;
-								if (TileMap[i + count][j - 1] != wall)
-									TileMap[i + count][j - 1] = dot;
-							}
-							k++;
-						}
-					}
+
+void AlignmentOfComputerOneShip(AlignmentShips * as, int si, int sj)//расстановка кораблей компьютером
+{
+	CompleteField(si, sj, empty123);
+	for (int LengthShip = 4; LengthShip > 0; LengthShip--) 
+	{
+		as->k = 1;
+		while (as->k <= (5 - LengthShip))
+		{
+			as->i = rand() % fieldSize + si;
+			as->j = rand() % fieldSize + sj;
+			as->location = rand() % 2 + 1; //расположение корабля, 1 - горизонтально, 2 - вертикально
+			if ((as->i < si + fieldSize) && (as->j < sj + fieldSize) && (TileMap[as->i][as->j] == empty123))
+				if (as->location == 1) //если расположение ГОРИЗОНТАЛЬНОЕ
+				{ 
+					as->horizontal = 1;
+					as->vertical = 0;
+					TestingAndPlacementOfShips(as, sj, si, LengthShip, as->horizontal, as->vertical);
+				}
+				else if (as->location == 2)  //вертикально
+				{
+					as->horizontal = 0;
+					as->vertical = 1;
+					TestingAndPlacementOfShips(as, sj, si, LengthShip, as->horizontal, as->vertical);
 				}
 		}
 	}
-	for (int i = 0; i < heighMap; i++)
-		for (int j = 0; j < widthMap; j++)
-			if ((TileMap[i][j] == ' ') && (i >= si) && (i < si + 10) && (j >= sj) && (j < sj + 10))
-				TileMap[i][j] = dot;
+	CompleteField(si, sj, dot);
 }
-void ComputerMove(struct intelligence *intel, Music & hit_music) {
-	(*intel).isHit = true;
-	if ((*intel).step1 == true) {
-		(*intel).x = rand() % 10 + si;
-		(*intel).y = rand() % 10 + sj1;
-		(*intel).step = seachShipByCompStep1((*intel).x, (*intel).y, hit_music);
-		if ((*intel).step == 0) {//на первом шаге попали мимо
-			(*intel).isHit = false;
-			(*intel).step2 = false;
-			(*intel).step1 = true;
-		}
-		else if ((*intel).step == 1) {
-			(*intel).isHit = true;
-			(*intel).step2 = true;
-			(*intel).step1 = false;
-			(*intel).numbPLayerShips--;
-		}
-		else if ((*intel).step == 2) {
-			(*intel).step1 = true;
-			(*intel).isHit = true;
-			(*intel).step2 = false;
-		}
-	}
-	///////////////////////ШАГ 2//////////////////
-	if ((*intel).step2 == true) {//поиск направления для удара по следующей ячейке, только когда в первый раз попали по ячейке
-		(*intel).dir = seachShipByCompStep2((*intel).x, (*intel).y);
-		if ((*intel).dir != 0) {
-			(*intel).step2 = false;
-			(*intel).step3 = true;
-			(*intel).isHit = true;
-		}
-		else {
-			(*intel).step1 = true;
-			(*intel).step2 = false;
-			(*intel).isHit = true;
+
+void ComputerMove (Game * g, Music & hit_music) {
+	g->isHit = true;
+	g->isStep = true;
+	if (g->step1) {
+		g->x = rand() % fieldSize + si;
+		g->y = rand() % fieldSize + sj1;
+		g->step = SeachShipByCompStep1(g->x, g->y, hit_music);
+		if (g->step == falseReturn) {//на первом шаге попали мимо
+			g->isHit = false;
+			g->step2 = false;
+			g->step1 = true;
+		}else if (g->step == trueReturn) {
+			g->isHit = true;
+			g->step2 = true;
+			g->step1 = false;
+			g->numbPLayerShips--;
+		}else if (g->step == errorReturn) {
+			g->step1 = true;
+			g->isHit = true;
+			g->step2 = false;
 		}
 	}
-	///////////////////////ШАГ 3/////////////////
-	if ((*intel).step3 == true) {//проверяем направление
-		if (seachShipByCompStep3((*intel).dir, (*intel).x, (*intel).y, hit_music) == true) {
-			(*intel).step4 = true;
-			(*intel).step3 = false;
-			(*intel).isHit = true;
-		}
-		else {
-			(*intel).step2 = true;
-			(*intel).step3 = false;
-			(*intel).isHit = false;
-		}
-	}
-	///////////////////////ШАГ 4//////////////////
-	if ((*intel).step4 == true) {//прострел корабля по заданному направлению
-		if (seachShipByCompStep4((*intel).dir, (*intel).x, (*intel).y, hit_music) == 0) {
-			(*intel).isHit = false;
-			(*intel).step4 = false;
-			(*intel).step5 = true;//пойдем в другую чторону проверять на полное убийство корабля
-		}
-		else if (seachShipByCompStep4((*intel).dir, (*intel).x, (*intel).y, hit_music) == 1) {
-			(*intel).isHit = true;
-			(*intel).numbPLayerShips--;
-			if ((*intel).dir == 1)
-				(*intel).x--;
-			if ((*intel).dir == 2)
-				(*intel).y++;
-			if ((*intel).dir == 3)
-				(*intel).x++;
-			if ((*intel).dir == 4)
-				(*intel).y--;
-		}
-		else if (seachShipByCompStep4((*intel).dir, (*intel).x, (*intel).y, hit_music) == 2) {//встретили стенку или уже попадали на эти координаты
-			(*intel).isHit = true;
-			(*intel).step4 = false;
-			(*intel).step5 = true;//пойдем в другую чторону проверять на полное убийство корабля
+	if (g->step2) {//поиск направления для удара по следующей ячейке, только когда в первый раз попали по ячейке
+		g->dir = SeachShipByCompStep2(g->x, g->y);
+		if (g->dir != falseReturn) {
+			g->step2 = false;
+			g->step3 = true;
+			g->isHit = true;
+		}else {
+			g->step1 = true;
+			g->step2 = false;
+			g->isHit = true;
 		}
 	}
-	///////////////////////ШАГ 5//////////////////
-	if (((*intel).step5 == true) && ((*intel).isHit = true)) {
-		if (seachShipByCompStep5((*intel).dir, (*intel).x, (*intel).y, hit_music) == false) {
-			(*intel).step5 = false;
-			(*intel).step1 = true;
-			(*intel).isHit = false;
+	if (g->step3) {//проверяем направление
+		if (SeachShipByCompStep3(g->dir, g->x, g->y, hit_music) == true) {
+			g->step4 = true;
+			g->step3 = false;
+			g->isHit = true;
+		}else {
+			g->step2 = true;
+			g->step3 = false;
+			g->isHit = false;
 		}
-		else {
-			(*intel).isHit = true;
-			(*intel).step5 = true;
-			(*intel).numbPLayerShips--;
+	}
+	if (g->step4) {//прострел корабля по заданному направлению
+		if (SeachShipByCompStep4(g->dir, g->x, g->y, hit_music) == falseReturn) {
+			g->isHit = false;
+			g->isStep = true;
+			g->step4 = false;
+			g->step5 = true;//пойдем в другую чторону проверять на полное убийство корабля
+		}else if (SeachShipByCompStep4(g->dir, g->x, g->y, hit_music) == trueReturn) {
+			g->isHit = true;
+			g->numbPLayerShips--;
+			if (g->dir == upDir)
+				g->x--;
+			if (g->dir == rightDir)
+				g->y++;
+			if (g->dir == downDir)
+				g->x++;
+			if (g->dir == leftDir)
+				g->y--;
+		}else if (SeachShipByCompStep4(g->dir, g->x, g->y, hit_music) == errorReturn) {//встретили стенку или уже попадали на эти координаты
+			g->isHit = true;
+			g->step4 = false;
+			g->step5 = true;//пойдем в другую чторону проверять на полное убийство корабля
+		}
+	}
+	if ((g->step5) && (g->isHit)) {
+		if (!SeachShipByCompStep5(g->dir, g->x, g->y, hit_music)) {
+			g->step5 = false;
+			g->step1 = true;
+			g->isHit = false;
+		}else {
+			g->isHit = true;
+			g->step5 = true;
+			g->numbPLayerShips--;
 		}
 	}
 }
-void PlayerMove(int i, int j, struct intelligence *intel, Music & hit_music) {
+
+void PlayerMove(int i, int j, struct Game *g, Music & hit_music) {
 	if (TileMap[i][j] == dot) { //мимо
 		TileMap[i][j] = past; //ставим точку
-		//water_music.play();
-		(*intel).hit = false;
-		//intel.numbStep++;
+		g->hit = false;
 	}
-	else if (TileMap[i][j] == oneShip) {//попал
+	else if (TileMap[i][j] == isShip) {//попал
 		TileMap[i][j] = hurt;//ставим крестик
 		hit_music.play();
-		(*intel).numbCompShips--;
-		//intel.numbStep++;
-		(*intel).hit = true;
+		g->numbCompShips--;
+		g->hit = true;
 	}
-	(*intel).isStep = false;
+	g->isStep = false;
 }
-int main()
-{
-	RenderWindow window(VideoMode(736, 544), "Sea War!");	
-	intelligence intel;
-	
-	Image mapImage; //создаём объект Image(изображение)
-	mapImage.loadFromFile("images/map.psd");
-	Texture map;//текстура карты
-	map.loadFromImage(mapImage);//заряжаем текстуру картинкой
-	Sprite mapSprite;//создаём спрайт для карты
-	mapSprite.setTexture(map);//заливаем текстуру спрайтом
 
-	Image wallImage; //создаём объект Image(изображение)
-	wallImage.loadFromFile("images/wall.png");
-	Texture wall;//текстура карты
-	wall.loadFromImage(wallImage);//заряжаем текстуру картинкой
-	Sprite wallSprite;//создаём спрайт для карты 
-	wallSprite.setTexture(wall);//заливаем текстуру спрайтом
+void Reset (Game *g) {
+	g->isStep = true;
+	g->hit = true;
+	g->isHit = false;
+	g->step1 = true;
+	g->step2 = false;
+	g->step3 = false;
+	g->step4 = false;
+	g->step5 = false;
+	g->win = false;
+	g->alighmentShips = true;
+	g->dir = 0;
+	g->numbCompShips = 20;
+	g->numbPLayerShips = 20;
+	g->x = 0;
+	g->y = 0;
+}
 
-	Image buttonImage; //создаём объект Image(изображение)
-	buttonImage.loadFromFile("images/buttons.psd");
-	Texture button;//текстура карты
-	button.loadFromImage(buttonImage);//заряжаем текстуру картинкой
-	Sprite button1;//создаём спрайт для карты 
-	button1.setTexture(button);//заливаем текстуру спрайтом
-	Sprite button2;//создаём спрайт для карты 
-	button2.setTexture(button);//заливаем текстуру спрайтом
-	Sprite button3;//создаём спрайт для карты 
-	button3.setTexture(button);//заливаем текстуру спрайтом
+void GameWithComputer(RenderWindow & window, Sprite & button1, Sprite & button2, Sprite & button3, Sprite & background, Sprite & map, Sprite & block,  Music & hit_music, Text & mainText, GraphicResource stMap, GraphicResource stBackground, GraphicResource stButton, GraphicResource stBlock) {
+	Game g;
+	AlignmentShips as;
 
-	Image blockImage; //создаём объект Image(изображение)
-	blockImage.loadFromFile("images/block.psd");
-	Texture block;//текстура карты
-	block.loadFromImage(blockImage);//заряжаем текстуру картинкой
-	Sprite blockSprite;//создаём спрайт для карты 
-	blockSprite.setTexture(block);//заливаем текстуру спрайтом
+	srand(time(NULL));
+	AlignmentOfComputerOneShip(&as, si, sj1);
+	AlignmentOfComputerOneShip(&as, si, sj2);
+
+	while (window.isOpen())
+	{
+		Vector2i pixPos = Mouse::getPosition(window);
+		int i = (pixPos.y / blockSize);
+		int j = (pixPos.x / blockSize);
+
+		Render(background, window, map, button1, block, button2, button3, mainText, &g);
+		Event event;
+		while (window.pollEvent(event))
+		{
+			////////////////////проверяем на нажатие кнопок////////////////////////////
+			if (event.type == Event::Closed)
+				window.close();
+			if ((event.type == Event::MouseButtonPressed) && (event.key.code == Mouse::Left))
+				if (button1.getGlobalBounds().contains(pixPos.x, pixPos.y)) {
+					AlignmentOfComputerOneShip(&as, si, sj1);
+					AlignmentOfComputerOneShip(&as, si, sj2);
+					Reset(&g);
+				}
+				else if (button2.getGlobalBounds().contains(pixPos.x, pixPos.y) && (g.alighmentShips == true))
+					AlignmentOfComputerOneShip(&as, si, sj1);
+				else if (button3.getGlobalBounds().contains(pixPos.x, pixPos.y))
+					window.close();
+				//////////////////////////НАЧАЛО ИГРЫ/////////////////////////////
+				if ((g.numbCompShips > 0) && (g.numbPLayerShips > 0)) {
+					///////////////////////ХОД ИГРОКА///////////////////////////
+					if ((g.isStep) && (!g.isHit)) {
+						if ((event.type == Event::MouseButtonPressed) && (event.key.code == Mouse::Left))
+							if ((i < si + fieldSize) && (i >= si) && (j < sj2 + fieldSize) && (j >= sj2)) { //и при этом координата курсора попадает
+								PlayerMove(i, j, &g, hit_music);
+								g.alighmentShips = false;
+							}
+					}
+					else
+						g.isStep = false;
+					Render(background, window, map, button1, block, button2, button3, mainText, &g);
+					////////////////////////ХОД БОТА////////////////////////////////
+					if ((!g.isStep) && (!g.hit)) {
+						ComputerMove(&g, hit_music);
+						g.isStep = true;
+					}
+					else
+						g.isStep = true;
+				}
+				else if ((g.numbCompShips <= 0) || (g.numbPLayerShips <= 0)) {
+					g.isHit = false;
+					g.isStep = false;
+					g.step1 = false;
+					g.step2 = false;
+					g.step3 = false;
+					g.step4 = false;
+					g.step5 = true;
+					g.win = true;
+				}
+		}
+	}
+	CleanTheMemory(stMap);
+	CleanTheMemory(stBackground);
+	CleanTheMemory(stButton);
+	CleanTheMemory(stBlock);
+}
+
+int main(){
+	RenderWindow window(VideoMode(windowWidth, windowHeigh), "Sea War!");
+	Game g;
+	AlignmentShips as;
+
+	GraphicResource stMap = MakeTheSprite("map.psd");
+	Sprite map = *stMap.spr;
+	GraphicResource stBackground = MakeTheSprite("wall.png");
+	Sprite background = *stBackground.spr;
+	GraphicResource stButton = MakeTheSprite("buttons.psd");
+	Sprite button1 = *stButton.spr;
+	Sprite button2 = *stButton.spr;
+	Sprite button3 = *stButton.spr;
+	GraphicResource stBlock = MakeTheSprite("block.psd");
+	Sprite block = *stBlock.spr;
+
+	Font font;//шрифт 
+	font.loadFromFile("font.ttf");//передаем нашему шрифту файл шрифта
+	Text mainText("", font, 30);//создаем объект текст. закидываем в объект текст строку, шрифт, размер шрифта(в пикселях);//сам объект текст (не строка)
+	mainText.setColor(Color::Black);//покрасили текст в черный
 
 	Music hit_music;
 	SoundBuffer hit_buffer;
 	Sound hit_sound;
 	hit_sound.setBuffer(hit_buffer);
 	if (!hit_music.openFromFile("audio/hit.wav"))
-		return -1; // error
+		return -1;
 
-	/*Music water_music;
-	SoundBuffer water_buffer;
-	Sound water_sound;
-	water_sound.setBuffer(water_buffer);
-	if (!water_music.openFromFile("audio/water.wav"))
-		return -1; // error*/
-
-	Font font;//шрифт 
-	font.loadFromFile("font.ttf");//передаем нашему шрифту файл шрифта
-	Text text("", font, 30);//создаем объект текст. закидываем в объект текст строку, шрифт, размер шрифта(в пикселях);//сам объект текст (не строка)
-	text.setColor(Color::Black);//покрасили текст в красный. если убрать эту строку, то по умолчанию он белый
-	
-	/////////////////////РАССТАВЛЯЕМ КОРАБЛИ///////////////////
-	srand(time(NULL));
-
-	alignmentOfComputerOneShip(si, sj1);
-	alignmentOfComputerOneShip(si, sj2);
-	//////////////////////////КОНЕЦ///////////////////////////////
-	while (window.isOpen())
-	{
-		sf::Vector2i pixPos = sf::Mouse::getPosition(window);
-		int i = (pixPos.y / 32);
-		int j = (pixPos.x / 32);
-
-		render(window, mapSprite, wallSprite, button1, blockSprite, button2, button3, text, intel.isHit, intel.isStep, intel.win);
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-			if (event.type == Event::MouseButtonPressed)
-				if (event.key.code == Mouse::Left)
-					if (button3.getGlobalBounds().contains(pixPos.x, pixPos.y))
-						window.close();
-			if (event.type == Event::MouseButtonPressed)
-				if (event.key.code == Mouse::Left)
-					if (button2.getGlobalBounds().contains(pixPos.x, pixPos.y)) {
-						alignmentOfComputerOneShip(si, sj1);
-
-					}
-			if (event.type == Event::MouseButtonPressed)
-				if (event.key.code == Mouse::Left)
-					if (button1.getGlobalBounds().contains(pixPos.x, pixPos.y)) {
-						alignmentOfComputerOneShip(si, sj1);
-						alignmentOfComputerOneShip(si, sj2);
-						intel.isStep = true;
-						intel.hit = true;
-						intel.isHit = false;
-						intel.step1 = true;
-						intel.step2 = false;
-						intel.step3 = false;
-						intel.step4 = false;
-						intel.step5 = false;
-						intel.win = false;
-						intel.dir = 0;
-						intel.numbCompShips = 20;
-						intel.numbPLayerShips = 20;
-						intel.numbStep = 0;
-						intel.x = 0;
-						intel.y = 0;
-					}
-			i = (pixPos.y / 32);
-			j = (pixPos.x / 32);
-			if ((intel.numbCompShips > 0) && (intel.numbPLayerShips > 0)) {
-				///////////////////////ХОД ИГРОКА///////////////////////////
-				//cout << "MOVE THE PLAYER! isStep = "<< intel.isStep << ", isHit = " << intel.isHit << "\n";
-				if ((intel.isStep == true) && (intel.isHit == false)) {
-					if (event.type == Event::MouseButtonPressed)
-						if (event.key.code == Mouse::Left)
-							if ((i <= 12) && (i >= 3) && (j <= 21) && (j >= 12)) //и при этом координата курсора попадает
-								PlayerMove(i, j, &intel, hit_music);
-				}else
-					intel.isStep = false;
-				render(window, mapSprite, wallSprite, button1, blockSprite, button2, button3, text, intel.isHit, intel.isStep, intel.win);
-				////////////////////////ХОД БОТА////////////////////////////////
-				if ((intel.isStep == false) && (intel.hit == false)) {
-					ComputerMove(&intel, hit_music);
-					intel.isStep = true;
-				}
-				else
-					intel.isStep = true;
-			}
-			else if ((intel.numbCompShips <= 0) || (intel.numbPLayerShips <= 0)) {
-				intel.isHit = false;
-				intel.isStep = false;
-				intel.step1 = false;
-				intel.step2 = false;
-				intel.step3 = false;
-				intel.step4 = false;
-				intel.step5 = true;
-				intel.win = true;
-			}
-			if (intel.numbPLayerShips <= 0)
-				intel.isStep = true;
-		}
-	}
+	GameWithComputer(window, button1, button2, button3, background, map, block, hit_music, mainText, stMap, stBackground, stButton, stBlock);
 	return 0;
 }
