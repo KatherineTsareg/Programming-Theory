@@ -1,20 +1,11 @@
 #include <SFML/Graphics.hpp>
 #include<iostream>
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include "Const.h"
+#include "CarModel.h"
 
 using namespace sf;
-
-const int WINDOW_X = 1280;
-const int WINDOW_Y = 400;
-const int rearWheelPos = 64;
-const int frontWheelPos = 271;
-const int bodyPos = 0;
-
-
-struct Car{
-	Sprite carBody;
-	CircleShape frontWheel;
-	CircleShape rearWheel;
-}car;
 
 struct GraphicResource {
 	Image* im;
@@ -42,23 +33,12 @@ void CleanTheMemory(GraphicResource & gr) {
 
 void PositionTheCarElements()
 {
-	car.frontWheel.setRadius(49 / 2);
-	car.frontWheel.setOrigin(49 / 2, 49 / 2);
+	car.frontWheel.setRadius(FRONT_WHEEL_RADIUS);
+	car.frontWheel.setOrigin(FRONT_WHEEL_RADIUS, FRONT_WHEEL_RADIUS);
 	
-	car.rearWheel.setRadius(58 / 2);
-	car.rearWheel.setOrigin(58 / 2, 58 / 2);
+	car.rearWheel.setRadius(REAR_WHEEL_RADIUS);
+	car.rearWheel.setOrigin(REAR_WHEEL_RADIUS, REAR_WHEEL_RADIUS);
 	
-}
-
-void MovementElements(float rotation)
-{
-	car.carBody.setPosition(bodyPos + rotation, WINDOW_Y - 100 - 20);
-	
-	car.frontWheel.setPosition(frontWheelPos + rotation, WINDOW_Y - 49 / 2 - 2 - 20);
-	car.frontWheel.setRotation(rotation);
-	
-	car.rearWheel.setPosition(rearWheelPos + rotation, WINDOW_Y - 58 / 2 - 20);
-	car.rearWheel.setRotation(rotation);
 }
 
 void DrawTheCar(RenderWindow &window) {
@@ -72,8 +52,8 @@ void DrawTheCar(RenderWindow &window) {
 void MovementTheAuto(RenderWindow &window)
 {
 	PositionTheCarElements();
-	bool posit = true;
-	float rotation = 0;
+	Clock clock;
+	
 	while (window.isOpen())
 	{
 		Event event;
@@ -82,23 +62,14 @@ void MovementTheAuto(RenderWindow &window)
 			if (event.type == Event::Closed)
 				window.close();
 		}
+		float time = clock.getElapsedTime().asMicroseconds();
+		clock.restart();
+		time = time / 1000;
 
-		MovementElements(rotation);
+		car.CalculateTheSpeed(event, time);
 		DrawTheCar(window);
 
-		if ((rotation < WINDOW_X) && (posit))
-			rotation += 0.1f;
-		else if ((rotation < -300) && (!posit)) {
-			rotation += 0.1f;
-			posit = true;
-		}
-		else{
-			rotation -= 0.1f;
-			posit = false;
-		}
-
 	}
-	
 }
 
 int main()
@@ -115,7 +86,7 @@ int main()
 	car.rearWheel.setTexture(&(*rearWheelGR.tex));
 	
 	MovementTheAuto(window);
-
+	
 	CleanTheMemory(bodyGR);
 	CleanTheMemory(frontWheelGR);
 	CleanTheMemory(rearWheelGR);

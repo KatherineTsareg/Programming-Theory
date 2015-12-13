@@ -157,6 +157,10 @@ copy "C:\SFML\bin\sfml-audio-d-2.dll" "$(OutputPath)sfml-audio-d-2.dll"</Command
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CarModel.h" />
+    <ClInclude Include="Const.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
