@@ -11,6 +11,7 @@ void draw_elements(RenderWindow &window)
 	window.draw(pendulum.base);
 	window.draw(pendulum.left_arrow);
 	window.draw(pendulum.right_arrow);
+	window.draw(pendulum.cargo);
 
 	window.draw(pendulum.left_cogwheel);
 	window.draw(pendulum.right_cogwheel);

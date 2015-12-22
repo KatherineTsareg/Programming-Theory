@@ -5,7 +5,7 @@
 using namespace sf;
 
 struct Pendulum {
-	CircleShape left_cogwheel, right_cogwheel;
+	CircleShape left_cogwheel, right_cogwheel, cargo;
 	ConvexShape base, left_arrow, right_arrow;
 	float rotation = 30, rot_gear_left = 0, rot_gear_right = 26;
 	float speed = -0.001;
@@ -32,10 +32,15 @@ struct Pendulum {
 	void init_pendulum()
 	{
 		base.setPointCount(3);
-		base.setPoint(0, Vector2f(100, 300));
+		base.setPoint(0, Vector2f(110, 200));
 		base.setPoint(1, Vector2f(120, 0));
-		base.setPoint(2, Vector2f(140, 300));
+		base.setPoint(2, Vector2f(130, 200));
 		position_convex(base);
+
+		cargo.setRadius(60);
+		cargo.setOrigin(60, -180);
+		cargo.setPosition(INITAL_POSITION_PENDULUM.x, INITAL_POSITION_PENDULUM.y);
+		cargo.setFillColor(Color::Green);
 
 		left_arrow.setPointCount(3);
 		left_arrow.setPoint(0, Vector2f(0, 90));
@@ -85,6 +90,7 @@ struct Pendulum {
 	void update_rotation()
 	{
 		base.setRotation(rotation);
+		cargo.setRotation(rotation);
 		left_arrow.setRotation(rotation);
 		right_arrow.setRotation(rotation);
 		left_cogwheel.setRotation(rotation);
