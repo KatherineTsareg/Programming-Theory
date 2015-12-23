@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp> 
 #include "pendulum.h"
+
 #include "const.h"
 
 using namespace sf;
@@ -7,21 +8,13 @@ using namespace sf;
 void draw_elements(RenderWindow &window)
 {
 	window.clear(Color::White);
-
-	window.draw(pendulum.base);
-	window.draw(pendulum.left_arrow);
-	window.draw(pendulum.right_arrow);
-	window.draw(pendulum.cargo);
-
-	window.draw(pendulum.left_cogwheel);
-	window.draw(pendulum.right_cogwheel);
-
+	draw_pendulum(window);
 	window.display();
 }
 
 void start_move(RenderWindow &window)
 {
-	pendulum.init_elements_of_pendulum();
+	init_pendulum();
 	while (window.isOpen())
 	{
 		Event event;
@@ -30,7 +23,7 @@ void start_move(RenderWindow &window)
 			if (event.type == Event::Closed)
 				window.close();
 		}
-		pendulum.update();
+		update();
 		draw_elements(window);
 	}
 }

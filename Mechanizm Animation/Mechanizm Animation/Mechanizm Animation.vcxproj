@@ -157,6 +157,7 @@ copy "C:\SFML\bin\sfml-audio-d-2.dll" "$(OutputPath)sfml-audio-d-2.dll"
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="pendulum.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="const.h" />
